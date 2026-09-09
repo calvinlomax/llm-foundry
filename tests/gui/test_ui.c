@@ -26,6 +26,58 @@ static void test_markdown(void) {
         g_free(rendered);
     }
 }
+static void collect_labels(GtkWidget *widget, GString *text) {
+    if (GTK_IS_EXPANDER(widget)) {
+        g_string_append(text, gtk_expander_get_label(GTK_EXPANDER(widget)));
+        g_string_append_c(text, '\n');
+        GtkWidget *content = gtk_expander_get_child(GTK_EXPANDER(widget));
+        if (content) collect_labels(content, text);
+        return;
+    }
+    if (GTK_IS_LABEL(widget)) {
+        g_string_append(text, gtk_label_get_text(GTK_LABEL(widget)));
+        g_string_append_c(text, '\n');
+    }
+    for (GtkWidget *child = gtk_widget_get_first_child(widget); child;
+         child = gtk_widget_get_next_sibling(child))
+        collect_labels(child, text);
+}
+static void check_model_info(App *a) {
+    const char *inspection = "{\"architecture\":\"llama\",\"name\":\"SmolLM2 <local>\","
+        "\"parameter_count\":1711000000,\"file_bytes\":1820414656,\"trained_context\":8192,"
+        "\"layers\":24,\"vocab_size\":49152,\"container_version\":3,\"tensor_count\":219,"
+        "\"sha256\":\"abc123\",\"path\":\"/tmp/model with spaces.gguf\"}";
+    gui_model_info_show(a->details, inspection);
+    gui_model_info_show(a->details, "{\"estimated_total_bytes\":3221225472,\"weights_bytes\":1820414656,"
+        "\"kv_bytes\":268435456,\"workspace_estimate_bytes\":268435456,\"reserve_bytes\":536870912,"
+        "\"machine_memory_bytes\":17179869184,\"context\":2048,\"kv_precision\":\"F16\",\"requested_placement\":\"cpu\"}");
+    GString *text = g_string_new(NULL);
+    collect_labels(a->details, text);
+    g_assert_nonnull(strstr(text->str, "SmolLM2 <local>"));
+    g_assert_nonnull(strstr(text->str, "1.71 B"));
+    g_assert_nonnull(strstr(text->str, "8,192"));
+    g_assert_nonnull(strstr(text->str, "Memory estimate"));
+    g_assert_nonnull(strstr(text->str, "GiB"));
+    g_assert_nonnull(strstr(text->str, "CPU"));
+    g_assert_null(strstr(text->str, "estimated_total_bytes"));
+    g_string_truncate(text, 0);
+    gui_model_info_clear(a->details);
+    gui_model_info_show(a->details, "{\"name\":\"registry-name\",\"inspection\":{\"architecture\":\"llama\","
+        "\"name\":\"Imported model\",\"parameter_count\":\"18446744073709551615\",\"file_bytes\":null}}");
+    collect_labels(a->details, text);
+    g_assert_nonnull(strstr(text->str, "Imported model"));
+    g_assert_nonnull(strstr(text->str, "18,446,744,073,709,551,615"));
+    g_assert_nonnull(strstr(text->str, "registry-name"));
+    g_assert_null(strstr(text->str, "Memory estimate"));
+    g_string_truncate(text, 0);
+    gui_model_info_show(a->details, "not JSON");
+    collect_labels(a->details, text);
+    g_assert_nonnull(strstr(text->str, "could not be read"));
+    g_assert_null(strstr(text->str, "not JSON"));
+    g_string_free(text, TRUE);
+    gui_model_info_clear(a->details);
+    gui_model_info_show(a->details, inspection);
+}
 static guint phase, attempts;
 static int short_height;
 static gboolean check_ui(gpointer data) {
@@ -38,6 +90,7 @@ static gboolean check_ui(gpointer data) {
         g_assert_false(gtk_widget_get_visible(a->stop));
         g_assert_false(gtk_widget_get_sensitive(a->load));
         g_assert_false(gtk_widget_get_sensitive(a->send));
+        g_assert_true(gtk_widget_get_sensitive(a->run_diagnostics));
         g_assert_cmpint(gtk_paned_get_position(GTK_PANED(a->paned)), <=, 320);
         gtk_editable_set_text(GTK_EDITABLE(a->model), "test-model");
         g_assert_true(gtk_widget_get_sensitive(a->load));
@@ -47,6 +100,7 @@ static gboolean check_ui(gpointer data) {
         g_assert_false(gtk_widget_get_sensitive(a->model));
         g_assert_false(gtk_widget_get_sensitive(a->context));
         g_assert_true(gtk_widget_get_sensitive(a->unload));
+        g_assert_false(gtk_widget_get_sensitive(a->run_diagnostics));
         g_assert_false(gtk_widget_get_sensitive(a->send));
         gtk_text_buffer_set_text(prompt, "Hello", -1);
         g_assert_true(gtk_widget_get_sensitive(a->send));
@@ -85,6 +139,7 @@ static gboolean check_ui(gpointer data) {
         a->loaded_model = g_strdup("test-model");
         controls(a);
         clear_chat(a);
+        check_model_info(a);
         message_block(a, "user", "Explain a hash table with a short code example.");
         message_block(a, "assistant", "");
         append(a, "**Hello** <world>");

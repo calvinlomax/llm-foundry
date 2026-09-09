@@ -70,9 +70,13 @@ weights). The context meter below generation settings uses actual input plus out
 tokens from the last request; it does not estimate an unsent draft. Expand Diagnostics
 for load, first-content, prefill, and decode timings and a bounded activity log.
 The memory plan remains an estimate and reserve, not an allocation guarantee.
-Metadata is shown in a compact
-view; full tensor/tokenizer inventories and original license/provenance are
-available through CLI inspection and the registry JSON.
+Model information is rendered as a summary with readable parameter counts, binary
+file sizes, context length, and vocabulary size. Architecture details and file
+provenance (including the selectable full path and SHA-256) are collapsible.
+Memory plan adds a separate breakdown beside the retained model summary; its bar
+compares estimated memory with total system RAM, not available memory. Missing
+fields display a quiet dash. Full tensor/tokenizer inventories and original
+license/provenance remain available through CLI inspection and the registry JSON.
 
 The tuning comparison panel, richer resource observations, automatic profile
 selection, macOS `.icns` icon, and portable GTK bundling remain tracked work.
@@ -82,3 +86,29 @@ in a desktop session for widget state, Return handling, composer resizing, and
 preference round-trip checks. This test uses a temporary registry and configuration. The `--smoke-test` development flag opens the window briefly and
 requests a clean shutdown. Manual keyboard/accessibility and visual review remain
 separate release checks; a successful compile alone does not establish them.
+
+## Launcher and full diagnostics
+
+Double-click `cinder.command` at the repository root to open the release GUI. It
+runs no tests, benchmarks, imports, or dependency installation. If the executable
+has not been built yet, it configures and builds the release preset once.
+
+After unloading the model, choose **Run diagnostics** to the right of the
+Diagnostics expander. A separate window streams stdout and stderr, shows a spinner,
+and reports pass, failure, or cancellation. **Cancel** or closing the popup stops
+the command and its child processes. Closing the application also cancels the run.
+The main window's runtime controls are disabled while the checks run.
+
+The button invokes the executable `cinder-diagnostics.command` at the repository
+root; you can also double-click that file to run it in Terminal. It contains the
+old launch pipeline: dependency setup, asset verification, build, CTest, import,
+inspection, memory planning, tokenization, raw/chat inference, environment capture,
+benchmarking, and the 300-second tuning search. It does not open another GUI.
+Builds use `build/diagnostics`, imports use `models/diagnostics-registry`, and logs,
+inspection, environment, and benchmark results go to a timestamped directory under
+`benchmarks/runs`. Tuning profiles remain under `profiles/local`. The popup retains
+the latest 2,000 lines; the complete output is saved in `diagnostics.log`.
+
+Run `./build/release/foundry-test-diagnostics` in a desktop session to check output
+streaming, UTF-8 boundaries, failure reporting, repeat runs, bounded log rendering,
+and cancellation of child processes using short isolated fixture commands.

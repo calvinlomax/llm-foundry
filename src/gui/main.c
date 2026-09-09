@@ -3,6 +3,11 @@
 #endif
 #include "cJSON.h"
 #include "runtime_worker.h"
+#include "diagnostics.h"
+#include "model_info.h"
+#ifndef FOUNDRY_SOURCE_DIR
+#define FOUNDRY_SOURCE_DIR "."
+#endif
 #include <gtk/gtk.h>
 #include <string.h>
 #include <sys/resource.h>
@@ -11,6 +16,8 @@ typedef struct {
     GtkApplication *application;
     GtkWindow *window;
     GuiWorker *worker;
+    GuiDiagnostics *diagnostics;
+    GtkWidget *run_diagnostics;
     GtkWidget *model, *name, *weights, *metadata, *dropdown, *prompt, *transcript, *details,
         *status, *metrics;
     GtkWidget *context, *tokens, *temperature, *top_p, *seed, *threads, *gpu;
@@ -98,7 +105,8 @@ static void update_usage(App *a) {
     g_free(summary);
 }
 static void controls(App *a) {
-    gboolean idle = !a->busy && !a->closing;
+    gboolean idle = !a->busy && !a->closing && !gui_diagnostics_running(a->diagnostics);
+    gtk_widget_set_sensitive(a->run_diagnostics, idle && !a->loaded);
     gboolean has_model = *entry(a->model) != '\0';
     GtkTextBuffer *prompt = gtk_text_view_get_buffer(GTK_TEXT_VIEW(a->prompt));
     gtk_widget_set_sensitive(a->load, idle && has_model && !a->loaded);
@@ -303,7 +311,7 @@ static void stop(GtkButton *button, gpointer data) {
 static void send(GtkButton *button, gpointer data) {
     (void)button;
     App *a = data;
-    if (a->busy || !a->loaded)
+    if (a->busy || !a->loaded || gui_diagnostics_running(a->diagnostics))
         return;
     GtkTextBuffer *b = gtk_text_view_get_buffer(GTK_TEXT_VIEW(a->prompt));
     GtkTextIter start, end;
@@ -447,21 +455,11 @@ static void import_model(GtkButton *button, gpointer data) {
     g_object_unref(d);
 }
 static void show_json(App *a, const char *text) {
-    cJSON *j = cJSON_Parse(text ? text : "{}");
-    if (j) {
-        cJSON_DeleteItemFromObjectCaseSensitive(j, "metadata");
-        cJSON_DeleteItemFromObjectCaseSensitive(j, "metadata_types");
-        cJSON_DeleteItemFromObjectCaseSensitive(j, "tensors");
-    }
-    char *pretty = j ? cJSON_Print(j) : NULL;
-    gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(a->details)),
-                             pretty ? pretty : (text ? text : ""), -1);
-    foundry_free(pretty);
-    cJSON_Delete(j);
+    gui_model_info_show(a->details, text);
 }
 static gboolean poll(gpointer data) {
     App *a = data;
-    if (a->closing && gui_worker_stopped(a->worker)) {
+    if (a->closing && gui_worker_stopped(a->worker) && !gui_diagnostics_running(a->diagnostics)) {
         gui_worker_free(a->worker);
         a->worker = NULL;
         gtk_window_destroy(a->window);
@@ -635,6 +633,7 @@ static gboolean close_window(GtkWindow *window, gpointer data) {
         a->closing = TRUE;
         g_cancellable_cancel(a->dialogs);
         gui_worker_close(a->worker);
+        gui_diagnostics_cancel(a->diagnostics);
         controls(a);
         set_status(a, "Closing… waiting for runtime cleanup.");
     }
@@ -691,6 +690,23 @@ static GtkWidget *text_view(GtkWidget *box, gboolean editable, int height, GtkWi
         *scroll = s;
     return v;
 }
+static void diagnostics_changed(gboolean running, gpointer data) {
+    App *a = data;
+    controls(a);
+    set_status(a, running ? "Diagnostics running in a separate window…" :
+                          "Diagnostics finished. Review the result in the diagnostics window.");
+}
+static void run_diagnostics(GtkButton *button, gpointer data) {
+    (void)button;
+    App *a = data;
+    if (a->busy || a->loaded || a->closing) return;
+    if (!a->diagnostics) {
+        const char *directory = g_getenv("FOUNDRY_PROJECT_DIR");
+        a->diagnostics = gui_diagnostics_new(a->window,
+            directory && *directory ? directory : FOUNDRY_SOURCE_DIR, diagnostics_changed, a);
+    }
+    gui_diagnostics_present(a->diagnostics);
+}
 static GtkWidget *heading(GtkWidget *box, const char *text) {
     GtkWidget *label = gtk_label_new(text);
     gtk_label_set_xalign(GTK_LABEL(label), 0);
@@ -721,8 +737,7 @@ static void inputs_changed(GtkWidget *widget, gpointer data) {
             if (!strcmp(entry(a->model), gtk_string_list_get_string(a->models, i))) match = i;
         if (gtk_drop_down_get_selected(GTK_DROP_DOWN(a->dropdown)) != match)
             gtk_drop_down_set_selected(GTK_DROP_DOWN(a->dropdown), match);
-        gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(a->details)),
-            "Choose Inspect for selected model metadata or Memory plan for estimated memory requirements.", -1);
+        gui_model_info_clear(a->details);
     }
     controls(a);
 }
@@ -786,6 +801,9 @@ static void activate(GtkApplication *app, gpointer data) {
         ".foundry .muted { font-size: 11px; opacity: .65; }"
         ".foundry .loaded { color: #31926a; font-weight: 600; }"
         ".foundry.dark .loaded { color: #7fd5ac; }"
+        ".foundry .info-headline { font-size: 16px; font-weight: 700; margin-bottom: 6px; }"
+        ".foundry .info-value { font-size: 12px; }"
+        ".foundry .info-warning { color: #d66572; }"
         ".foundry .statusbar { padding: 8px 16px; font-size: 11px; }"
         ".foundry progressbar trough { min-height: 5px; border: none; }"
         ".foundry progressbar progress { background: #6285e6; border: none; }";
@@ -892,11 +910,8 @@ static void activate(GtkApplication *app, gpointer data) {
     GtkWidget *information = section(side);
     gtk_widget_set_margin_top(information, 20);
     heading(information, "Model information");
-    a->details = text_view(information, FALSE, 150, NULL);
-    gtk_text_view_set_monospace(GTK_TEXT_VIEW(a->details), TRUE);
-    gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(a->details)),
-        "Choose Inspect for model metadata or Memory plan for estimated memory requirements.", -1);
-    gtk_widget_set_vexpand(gtk_widget_get_parent(a->details), TRUE);
+    a->details = gui_model_info_new();
+    gtk_box_append(GTK_BOX(information), a->details);
     gtk_widget_set_vexpand(information, TRUE);
 
     GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
@@ -977,8 +992,16 @@ static void activate(GtkApplication *app, gpointer data) {
     g_signal_connect(window_controller, "key-pressed", G_CALLBACK(window_keys), a);
     gtk_widget_add_controller(GTK_WIDGET(a->window), window_controller);
 
+    GtkWidget *diagnostics_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+    gtk_box_append(GTK_BOX(chat), diagnostics_row);
     a->diagnostics_section = gtk_expander_new("Diagnostics");
-    gtk_box_append(GTK_BOX(chat), a->diagnostics_section);
+    gtk_widget_set_hexpand(a->diagnostics_section, TRUE);
+    gtk_box_append(GTK_BOX(diagnostics_row), a->diagnostics_section);
+    a->run_diagnostics = button(diagnostics_row, "Run diagnostics", G_CALLBACK(run_diagnostics), a);
+    gtk_widget_set_valign(a->run_diagnostics, GTK_ALIGN_START);
+    gtk_widget_add_css_class(a->run_diagnostics, "flat");
+    gtk_widget_set_tooltip_text(a->run_diagnostics,
+        "Run verification, build/tests, inference checks, benchmarks and tuning in a live-output window. Unload the model first.");
     GtkWidget *diagnostics = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
     gtk_expander_set_child(GTK_EXPANDER(a->diagnostics_section), diagnostics);
     a->metrics = gtk_label_new("Request timings appear after generation.");
@@ -1059,6 +1082,7 @@ int main(int argc, char **argv) {
         g_ptr_array_unref(a.history);
     g_clear_object(&a.dialogs);
     g_clear_object(&a.models);
+    gui_diagnostics_free(a.diagnostics);
     g_free(a.preference_path);
     g_free(a.loaded_model);
     g_free(a.conversation_model);
