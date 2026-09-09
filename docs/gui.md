@@ -8,9 +8,10 @@ Python runtime, server, WebView, or browser.
 ## First run
 
 1. Expand **Import model** and set an import name, such as `smollm2`.
-2. For a direct file, choose **Import GGUF** and select the complete local model.
+2. For a direct file, choose **Import GGUF…** and select the complete local model.
 3. For the copied Ollama assets, enter the weights directory and metadata directory
-   as absolute paths, then choose **Import Ollama manifest** and select the manifest.
+   as absolute paths, then choose **Import Ollama…**, select `manifest.json`, and click
+   **Import** in the file chooser. The chooser starts in the metadata directory.
 4. Choose **Inspect** and **Memory plan** to review the artifact and estimate.
 5. Choose **Load**. Wait for Ready before sending a prompt.
 6. Enter text in the multiline prompt box and choose **Send**, or press Return. Shift+Return inserts a new line (Ctrl+Return also sends).

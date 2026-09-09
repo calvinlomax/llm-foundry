@@ -451,6 +451,12 @@ static void import_model(GtkButton *button, gpointer data) {
     ctx->ollama = GTK_WIDGET(button) == a->import_ollama;
     GtkFileDialog *d = gtk_file_dialog_new();
     gtk_file_dialog_set_title(d, ctx->ollama ? "Import Ollama manifest" : "Import local GGUF");
+    gtk_file_dialog_set_accept_label(d, "Import");
+    if (ctx->ollama && g_file_test(entry(a->metadata), G_FILE_TEST_IS_DIR)) {
+        GFile *folder = g_file_new_for_path(entry(a->metadata));
+        gtk_file_dialog_set_initial_folder(d, folder);
+        g_object_unref(folder);
+    }
     gtk_file_dialog_open(d, a->window, a->dialogs, chosen, ctx);
     g_object_unref(d);
 }
@@ -875,14 +881,18 @@ static void activate(GtkApplication *app, gpointer data) {
     gtk_box_append(GTK_BOX(side), a->import_section);
     a->name = input(imports, "Registry name", "smollm2");
     gtk_entry_set_placeholder_text(GTK_ENTRY(a->name), "A short name for your model");
-    a->import_gguf = button(imports, "Choose GGUF…", G_CALLBACK(import_model), a);
+    a->import_gguf = button(imports, "Import GGUF…", G_CALLBACK(import_model), a);
     a->weights = input(imports, "Ollama weights directory", ".");
     a->metadata = input(imports, "Ollama metadata directory", "metadata");
     gtk_entry_set_placeholder_text(GTK_ENTRY(a->weights), "/path/to/model/blobs");
     gtk_entry_set_placeholder_text(GTK_ENTRY(a->metadata), "/path/to/copied/metadata");
     gtk_widget_set_tooltip_text(a->weights, "Ollama only: folder containing the sha256 model weight file; absolute paths are recommended.");
     gtk_widget_set_tooltip_text(a->metadata, "Ollama only: folder containing the manifest's config, template, license and parameter blobs.");
-    a->import_ollama = button(imports, "Choose Ollama manifest…", G_CALLBACK(import_model), a);
+    a->import_ollama = button(imports, "Import Ollama…", G_CALLBACK(import_model), a);
+    gtk_widget_set_tooltip_text(a->import_ollama,
+        "Select manifest.json, then click Import to verify and register the model.");
+    gtk_widget_set_tooltip_text(a->import_gguf,
+        "Select a local GGUF file, then click Import to verify and register the model.");
 
     GtkWidget *settings = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     a->settings_section = gtk_expander_new("Generation settings");
