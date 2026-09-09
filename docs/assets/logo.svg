@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+  <defs>
+    <linearGradient id="ember" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF5A1F"/>
+      <stop offset="55%" stop-color="#FF8A00"/>
+      <stop offset="100%" stop-color="#FFD166"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2B2F36"/>
+      <stop offset="100%" stop-color="#101216"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Transparent background -->
+
+  <!-- Outer forged ring -->
+  <circle cx="600" cy="540" r="370" fill="none" stroke="url(#steel)" stroke-width="58"/>
+
+  <!-- Stylized C / furnace opening -->
+  <path d="M790 330
+           C735 270 655 235 565 235
+           C390 235 250 375 250 550
+           C250 725 390 865 565 865
+           C665 865 755 820 815 750"
+        fill="none" stroke="url(#ember)" stroke-width="105" stroke-linecap="round"/>
+
+  <!-- Anvil / foundation -->
+  <path d="M425 720 H785
+           L750 785 H665
+           V840 H770
+           L825 905
+           H375
+           L430 840 H535
+           V785 H460 Z"
+        fill="url(#steel)"/>
+
+  <!-- Neural / token nodes -->
+  <g stroke="#F2F4F7" stroke-width="22" stroke-linecap="round">
+    <line x1="520" y1="455" x2="610" y2="400"/>
+    <line x1="610" y1="400" x2="690" y2="465"/>
+    <line x1="520" y1="455" x2="555" y2="555"/>
+    <line x1="690" y1="465" x2="655" y2="565"/>
+    <line x1="555" y1="555" x2="655" y2="565"/>
+  </g>
+  <g fill="#F2F4F7">
+    <circle cx="520" cy="455" r="34"/>
+    <circle cx="610" cy="400" r="34"/>
+    <circle cx="690" cy="465" r="34"/>
+    <circle cx="555" cy="555" r="34"/>
+    <circle cx="655" cy="565" r="34"/>
+  </g>
+
+  <!-- Ember spark -->
+  <path d="M820 245 L848 190 L870 248 L925 275 L868 295 L840 350 L820 292 L765 270 Z"
+        fill="#FF8A00"/>
+
+  <!-- Wordmark -->
+  <text x="600" y="1035" text-anchor="middle"
+        font-family="Inter, Helvetica, Arial, sans-serif"
+        font-size="92" font-weight="800" letter-spacing="7"
+        fill="#FFFFFF">CINDER FOUNDRY</text>
+</svg>

@@ -1,4 +1,6 @@
-# Cinder Foundry
+<p align="center">
+  <a href="README.md"><img src="docs/assets/logo.svg" alt="Cinder Foundry"></a>
+</p>
 
 <p align="center"><strong>Local language model inference through a C17 API, terminal, and C desktop app.</strong></p>
 
@@ -131,8 +133,7 @@ See [models and provenance](docs/models.md) and the [compatibility matrix](docs/
 Raw text goes to stdout. Backend logs, errors, and `--metrics-json` records go to
 stderr. Ctrl+C cancels a CLI request; Stop cancels a GUI request. Cancellation
 waits for a supported backend interruption point. In CLI chat, use `/new` to
-clear history and `/quit` to exit. In the GUI, use Ctrl+Enter to send a multiline
-prompt. Conversations are saved only when you choose Export.
+clear history and `/quit` to exit. In the GUI, use Return to send and Shift+Return to add a new line. Conversations are saved only when you choose Export.
 
 See the [CLI reference](docs/cli.md), [GUI guide](docs/gui.md), and
 [C API reference](docs/api.md).
