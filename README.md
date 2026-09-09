@@ -1,6 +1,33 @@
 # Cinder Foundry
 
-**Local language model inference through a C17 API, terminal, and C desktop app.**
+<p align="center"><strong>Local language model inference through a C17 API, terminal, and C desktop app.</strong></p>
+
+<p align="center">
+  <a href="LICENSE"><img src="docs/assets/badges/license.svg" alt="License: MIT"></a>
+  <a href="CHANGELOG.md"><img src="docs/assets/badges/version.svg" alt="Version: 0.1.0-dev"></a>
+  <a href="docs/releasing.md"><img src="docs/assets/badges/status.svg" alt="Status: preview"></a>
+  <a href="docs/api.md"><img src="docs/assets/badges/language.svg" alt="C standard: C17"></a>
+  <a href="docs/gui.md"><img src="docs/assets/badges/gui.svg" alt="GUI: GTK4"></a>
+  <a href="docs/backend-revision.txt"><img src="docs/assets/badges/backend.svg" alt="Backend: llama.cpp"></a>
+</p>
+
+<p align="center">
+  <a href="docs/installation.md">Install</a> /
+  <a href="docs/cli.md">CLI guide</a> /
+  <a href="docs/gui.md">Desktop guide</a> /
+  <a href="docs/api.md">C API</a> /
+  <a href="docs/benchmarking.md">Benchmarks</a> /
+  <a href="docs/compatibility.md">Compatibility</a> /
+  <a href="docs/roadmap.md">Roadmap</a>
+</p>
+
+<p align="center">
+  <a href="THIRD_PARTY_NOTICES.md">Third-party notices</a> /
+  <a href="CONTRIBUTING.md">Contributing</a> /
+  <a href="SECURITY.md">Security</a> /
+  <a href="CODE_OF_CONDUCT.md">Code of conduct</a> /
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
 
 Cinder Foundry is the implementation of the [LLM Foundry development plan](llm-foundry-development-plan.md).
 It uses a pinned llama.cpp compute backend behind an opaque C API. The registry,

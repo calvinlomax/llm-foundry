@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="68" height="20" role="img" aria-labelledby="title">
+  <title id="title">GUI: GTK4</title>
+  <linearGradient id="shine" x2="0" y2="100%"><stop stop-color="#fff" stop-opacity=".2"/><stop offset="1" stop-opacity=".2"/></linearGradient>
+  <clipPath id="round"><rect width="68" height="20" rx="3"/></clipPath>
+  <g clip-path="url(#round)"><path fill="#555" d="M0 0h30v20H0z"/><path fill="#6f42c1" d="M30 0h38v20H30z"/><path fill="url(#shine)" d="M0 0h68v20H0z"/></g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana, Geneva, sans-serif" font-size="11">
+    <g fill="#010101" fill-opacity=".3"><text x="15" y="15">GUI</text><text x="49" y="15">GTK4</text></g>
+    <text x="15" y="14">GUI</text><text x="49" y="14">GTK4</text>
+  </g>
+</svg>
