@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Foundry CLI metrics event v1",
+  "type": "object",
+  "required": ["schema_version", "event", "status", "prompt_tokens", "generated_tokens", "cached_prompt_tokens", "load_ms", "prefill_ms", "decode_ms", "first_token_ms", "total_ms", "stop_reason", "effective_config", "backend"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "event": {"const": "metrics"},
+    "status": {"type": "string"},
+    "prompt_tokens": {"type": "integer", "minimum": 0},
+    "generated_tokens": {"type": "integer", "minimum": 0},
+    "cached_prompt_tokens": {"type": "integer", "minimum": 0},
+    "load_ms": {"type": "number", "minimum": 0},
+    "prefill_ms": {"type": "number", "minimum": 0},
+    "decode_ms": {"type": "number", "minimum": 0},
+    "first_token_ms": {"type": "number", "minimum": 0},
+    "total_ms": {"type": "number", "minimum": 0},
+    "decode_tokens_per_second": {"type": ["number", "null"]},
+    "observed_memory_bytes": {"type": ["number", "null"]},
+    "stop_reason": {"enum": ["eos", "token_limit", "stop_sequence", "cancelled", "error", ""]},
+    "effective_config": {"type": "object"},
+    "backend": {"type": "object"}
+  },
+  "additionalProperties": true
+}

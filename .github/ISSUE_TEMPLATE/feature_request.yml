@@ -1,0 +1,21 @@
+name: Feature request
+description: Propose a capability with a measurable acceptance gate.
+title: "feature: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and intended user behavior
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Proposed contract, dependencies, and affected files
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Tests and acceptance commands
+      description: Include compatibility evidence, measurement effect, and rollback where relevant.
+    validations:
+      required: true

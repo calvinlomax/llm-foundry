@@ -1,0 +1,64 @@
+name: Build and test
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      FOUNDRY_HOME: ${{ github.workspace }}/build/ci-registry
+      XDG_CONFIG_HOME: ${{ github.workspace }}/build/ci-config
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build pkg-config libgtk-4-dev xvfb
+      - name: macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install cmake ninja gtk4 pkgconf
+      - name: Configure and build
+        run: |
+          cmake --preset release
+          cmake --build --preset release
+      - name: Test synthetic fixtures and C SDK
+        run: ctest --preset release
+      - name: GTK window smoke test
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./build/release/foundry-gui --smoke-test
+      - name: Verify C-only GUI source boundary
+        run: python3 scripts/check_repository.py
+      - name: Install and run C sample
+        run: |
+          cmake --install build/release --prefix "$PWD/build/install"
+          ./build/install/bin/foundry version
+          ./build/install/bin/foundry-example
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-logs-${{ matrix.os }}
+          path: build/release/Testing/Temporary/*.log
+          retention-days: 14
+  sanitizers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - run: |
+          cmake --preset sanitize
+          cmake --build --preset sanitize
+          ctest --preset sanitize

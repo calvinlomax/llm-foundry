@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Cinder Foundry
+Comment=Offline local language model inference
+Exec=foundry-gui
+Icon=cinder-foundry
+Terminal=false
+Categories=Development;Utility;
+Keywords=LLM;AI;Chat;Offline;

@@ -1,0 +1,11 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {"name":"release","generator":"Ninja","binaryDir":"${sourceDir}/build/release","cacheVariables":{"CMAKE_BUILD_TYPE":"Release"}},
+    {"name":"cpu","inherits":"release","binaryDir":"${sourceDir}/build/cpu","cacheVariables":{"FOUNDRY_BUILD_GUI":"OFF"}},
+    {"name":"metal","inherits":"release","binaryDir":"${sourceDir}/build/metal","cacheVariables":{"FOUNDRY_METAL":"ON"}},
+    {"name":"sanitize","inherits":"cpu","binaryDir":"${sourceDir}/build/sanitize","cacheVariables":{"CMAKE_BUILD_TYPE":"Debug","FOUNDRY_SANITIZE":"ON"}}
+  ],
+  "buildPresets": [{"name":"release","configurePreset":"release","jobs":2},{"name":"cpu","configurePreset":"cpu","jobs":2},{"name":"metal","configurePreset":"metal","jobs":2},{"name":"sanitize","configurePreset":"sanitize","jobs":2}],
+  "testPresets": [{"name":"release","configurePreset":"release","output":{"outputOnFailure":true}},{"name":"cpu","configurePreset":"cpu","output":{"outputOnFailure":true}},{"name":"sanitize","configurePreset":"sanitize","output":{"outputOnFailure":true}}]
+}

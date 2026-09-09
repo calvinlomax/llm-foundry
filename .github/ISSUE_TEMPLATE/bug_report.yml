@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a reproducible runtime, importer, CLI, or GUI failure.
+title: "bug: "
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Include exact commands or GUI actions, with private content removed.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and versions
+      description: OS/architecture, RAM, Foundry commit, backend revision, CMake settings, GTK version.
+    validations:
+      required: true
+  - type: textarea
+    id: artifact
+    attributes:
+      label: Model identity
+      description: SHA-256, architecture, tensor types, tokenizer/template, requested placement. Do not upload model weights.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction and logs
+      description: Prefer a synthetic fixture. Remove private paths, prompts, credentials, and model content.
+    validations:
+      required: true

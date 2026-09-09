@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Foundry model registry record v1",
+  "type": "object",
+  "required": ["schema_version", "name", "path", "sha256", "mode", "imported_at", "inspection"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "name": {"type": "string", "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,95}$"},
+    "path": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "mode": {"enum": ["copy", "reference"]},
+    "imported_at": {"type": "string", "format": "date-time"},
+    "inspection": {"type": "object"},
+    "provenance": {"type": "object"}
+  },
+  "additionalProperties": true
+}

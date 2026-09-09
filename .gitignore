@@ -1,0 +1,17 @@
+# Local model assets, private metadata and generated measurements
+/sha256-*
+/metadata/
+/models/
+/build*/
+/.venv/
+/benchmarks/runs/
+/profiles/local/
+*.gguf
+*.safetensors
+*.partial*
+.DS_Store
+__pycache__/
+*.pyc
+*.dSYM/
+/dist/
+/CMakeUserPresets.json
